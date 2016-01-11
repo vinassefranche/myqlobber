@@ -2,7 +2,6 @@
           rabbitmq_bindings_to_remove : false,
           rabbitmq_expected_results_before_remove: false,
           rabbitmq_expected_results_after_remove : false,
-          rabbitmq_expected_results_after_remove_all : false,
           rabbitmq_expected_results_after_clear : false,
           describe: false,
           beforeEach: false,
@@ -29,25 +28,68 @@ describe('qlobber', function ()
 
         bindings.forEach(function (topic_val)
         {
-            matcher.add(topic_val[0], mapper(topic_val[1]));
+            matcher.add(mapper(topic_val));
         });
     }
-
-    function remove_duplicates_filter(item, index, arr)
-    {
-        return item !== arr[index - 1];
-    }
-
-    Array.prototype.remove_duplicates = function ()
-    {
-        return this.sort().filter(remove_duplicates_filter);
-    };
 
     it('should support adding bindings', function ()
     {
         add_bindings(rabbitmq_test_bindings);
 
-        expect(matcher.get_trie()).to.eql({"a":{"b":{"c":{".":["t1","t20"]},"b":{"c":{".":["t4"]},".":["t14"]},".":["t15"]},"*":{"c":{".":["t2"]},".":["t9"]},"#":{"b":{".":["t3"]},".":["t11"],"#":{".":["t12"]}}},"#":{".":["t5"],"#":{".":["t6"],"#":{".":["t24"]}},"b":{".":["t7"],"#":{".":["t26"]}},"*":{"#":{".":["t22"]}}},"*":{"*":{".":["t8"],"*":{".":["t18"]}},"b":{"c":{".":["t10"]}},"#":{".":["t21"],"#":{".":["t23"]}},".":["t25"]},"b":{"b":{"c":{".":["t13"]}},"c":{".":["t16"]}},"":{".":["t17"]},"vodka":{"martini":{".":["t19"]}}});
+        expect(matcher.get_trie()).to.eql({
+            "a":{
+                "b":{
+                    "c":{
+                        ".":true
+                    },
+                    "b":{
+                        "c":{
+                            ".":true
+                        },
+                        ".":true
+                    },
+                    ".":true
+                },
+                "*":{
+                    "c":{
+                        ".":true
+                    },
+                    ".":true
+                }
+            },
+            "*":{
+                "*":{
+                    ".":true,
+                    "*":{
+                        ".":true
+                    }
+                },
+                "b":{
+                    "c":{
+                        ".":true
+                    }
+                },
+                ".":true
+            },
+            "b":{
+                "b":{
+                    "c":{
+                        ".":true
+                    }
+                },
+                "c":{
+                    ".":true
+                }
+            },
+            "":{
+                ".":true
+            },
+            "vodka":{
+                "martini":{
+                    ".":true
+                }
+            }
+        });
     });
 
     it('should pass rabbitmq test', function ()
@@ -56,7 +98,7 @@ describe('qlobber', function ()
 
         rabbitmq_expected_results_before_remove.forEach(function (test)
         {
-            expect(matcher.match(test[0]).remove_duplicates(), test[0]).to.eql(test[1].sort());
+            expect(matcher.match(test[0])).to.eql(test[1]);
         });
     });
 
@@ -66,15 +108,50 @@ describe('qlobber', function ()
 
         rabbitmq_bindings_to_remove.forEach(function (i)
         {
-            matcher.remove(rabbitmq_test_bindings[i-1][0],
-                           rabbitmq_test_bindings[i-1][1]);
+            matcher.remove(rabbitmq_test_bindings[i-1]);
         });
 
-        expect(matcher.get_trie()).to.eql({"a":{"b":{"c":{".":["t20"]},"b":{"c":{".":["t4"]},".":["t14"]},".":["t15"]},"*":{"c":{".":["t2"]},".":["t9"]},"#":{"b":{".":["t3"]},"#":{".":["t12"]}}},"#":{"#":{".":["t6"],"#":{".":["t24"]}},"b":{".":["t7"],"#":{".":["t26"]}},"*":{"#":{".":["t22"]}}},"*":{"*":{".":["t8"],"*":{".":["t18"]}},"b":{"c":{".":["t10"]}},"#":{"#":{".":["t23"]}},".":["t25"]},"b":{"b":{"c":{".":["t13"]}},"c":{".":["t16"]}},"":{".":["t17"]}});
+        expect(matcher.get_trie()).to.eql({
+            "a":{
+                "b":{
+                    "b":{
+                        "c":{
+                            ".":true
+                        },
+                        ".":true
+                    },
+                    ".":true
+                }
+            },
+            "*":{
+                "*":{
+                    ".":true
+                },
+                ".":true
+            },
+            "b":{
+                "b":{
+                    "c":{
+                        ".":true
+                    }
+                },
+                "c":{
+                    ".":true
+                }
+            },
+            "":{
+                ".":true
+            },
+            "vodka":{
+                "martini":{
+                    ".":true
+                }
+            }
+        });
 
         rabbitmq_expected_results_after_remove.forEach(function (test)
         {
-            expect(matcher.match(test[0]).remove_duplicates(), test[0]).to.eql(test[1].sort());
+            expect(matcher.match(test[0])).to.eql(test[1]);
         });
         
         /*jslint unparam: true */
@@ -86,14 +163,14 @@ describe('qlobber', function ()
 
         remaining.forEach(function (topic_val)
         {
-            matcher.remove(topic_val[0], topic_val[1]);
+            matcher.remove(topic_val);
         });
             
         expect(matcher.get_trie()).to.eql({});
 
         rabbitmq_expected_results_after_clear.forEach(function (test)
         {
-            expect(matcher.match(test[0]).remove_duplicates(), test[0]).to.eql(test[1].sort());
+            expect(matcher.match(test[0])).to.eql(test[1]);
         });
     });
 
@@ -105,53 +182,17 @@ describe('qlobber', function ()
 
         rabbitmq_expected_results_after_clear.forEach(function (test)
         {
-            expect(matcher.match(test[0]).remove_duplicates(), test[0]).to.eql(test[1].sort());
-        });
-    });
-
-    it('should support removing all values for a topic', function ()
-    {
-        add_bindings(rabbitmq_test_bindings);
-
-        rabbitmq_bindings_to_remove.forEach(function (i)
-        {
-            matcher.remove(rabbitmq_test_bindings[i-1][0]);
-        });
-        
-        expect(matcher.get_trie()).to.eql({"a":{"b":{"b":{"c":{".":["t4"]},".":["t14"]},".":["t15"]},"*":{"c":{".":["t2"]},".":["t9"]},"#":{"b":{".":["t3"]},"#":{".":["t12"]}}},"#":{"#":{".":["t6"],"#":{".":["t24"]}},"b":{".":["t7"],"#":{".":["t26"]}},"*":{"#":{".":["t22"]}}},"*":{"*":{".":["t8"],"*":{".":["t18"]}},"b":{"c":{".":["t10"]}},"#":{"#":{".":["t23"]}},".":["t25"]},"b":{"b":{"c":{".":["t13"]}},"c":{".":["t16"]}},"":{".":["t17"]}});
-
-        rabbitmq_expected_results_after_remove_all.forEach(function (test)
-        {
-            expect(matcher.match(test[0]).remove_duplicates(), test[0]).to.eql(test[1].sort());
-        });
-    });
-
-    it('should support functions as values', function ()
-    {
-        add_bindings(rabbitmq_test_bindings, function (topic)
-        {
-            return function ()
-            {
-                return topic;
-            };
-        });
-
-        rabbitmq_expected_results_before_remove.forEach(function (test)
-        {
-            expect(matcher.match(test[0], test[0]).map(function (f)
-            {
-                return f();
-            }).remove_duplicates()).to.eql(test[1].sort());
+            expect(matcher.match(test[0])).to.eql(test[1]);
         });
     });
 
     it('should pass example in README', function ()
     {
-        matcher.add('foo.*', 'it matched!');
-        expect(matcher.match('foo.bar')).to.eql(['it matched!']);
+        matcher.add('foo.*');
+        expect(matcher.match('foo.bar')).to.eql(true);
     });
 
-    it('should pass example in rabbitmq topic tutorial', function ()
+    it.skip('should pass example in rabbitmq topic tutorial', function ()
     {
 	    matcher.add('*.orange.*', 'Q1');
         matcher.add('*.*.rabbit', 'Q2');
@@ -179,35 +220,26 @@ describe('qlobber', function ()
                 ['Q2']]);
     });
 
-    it('should not remove anything if not previously added', function ()
+    it('should not remove anything if not remove twice', function ()
     {
-        matcher.add('foo.*', 'it matched!');
+        matcher.add('foo.*');
+        matcher.add('foo.bar');
         matcher.remove('foo');
-        matcher.remove('foo.*', 'something');
+        matcher.remove('foo.*');
         matcher.remove('bar.*');
-        expect(matcher.match('foo.bar')).to.eql(['it matched!']);
-    });
-
-    it('should accept wildcards in match topics', function ()
-    {
-        matcher.add('foo.*', 'it matched!');
-        matcher.add('foo.#', 'it matched too!');
-        expect(matcher.match('foo.*').sort()).to.eql(['it matched too!', 'it matched!']);
-        expect(matcher.match('foo.#').sort()).to.eql(['it matched too!', 'it matched!']);
+        expect(matcher.match('foo.bar')).to.eql(true);
+        expect(matcher.match('foo.blabla')).to.eql(false);
     });
 
     it('should be configurable', function ()
     {
         matcher = new qlobber.Qlobber({
             separator: '/',
-            wildcard_one: '+',
-            wildcard_some: 'M'
+            wildcard_one: '+'
         });
 
-        matcher.add('foo/+', 'it matched!');
-        matcher.add('foo/M', 'it matched too!');
-        expect(matcher.match('foo/bar').sort()).to.eql(['it matched too!', 'it matched!']);
-        expect(matcher.match('foo/bar/end').sort()).to.eql(['it matched too!']);
+        matcher.add('foo/+');
+        expect(matcher.match('foo/bar')).to.eql(true);
 
     });
 });
