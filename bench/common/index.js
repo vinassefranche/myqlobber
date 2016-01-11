@@ -14,11 +14,6 @@ function remove_duplicates_filter(item, index, arr)
     return item !== arr[index - 1];
 }
 
-function remove_duplicates(arr)
-{
-    return arr.sort().filter(remove_duplicates_filter);
-}
-
 exports.add_bindings = function(matcher)
 {
     var i, topic_val;
@@ -26,22 +21,22 @@ exports.add_bindings = function(matcher)
     for (i = 0; i < rabbitmq_test_bindings.length; i += 1)
     {
         topic_val = rabbitmq_test_bindings[i];
-        matcher.add(topic_val[0], topic_val[1]);
+        matcher.add(topic_val);
     }
 };
 
 exports.match = function(matcher)
 {
-    var i, test, vals;
+    var i, test, val;
 
     for (i = 0; i < rabbitmq_expected_results_before_remove.length; i += 1)
     {
         test = rabbitmq_expected_results_before_remove[i];
-        vals = matcher.match(test[0]);
+        val = matcher.match(test[0]);
 
         if (options.check)
         {
-            expect(remove_duplicates(vals)).to.eql(test[1].sort());
+            expect(val).to.eql(test[1]);
         }
     }
 };
@@ -53,7 +48,7 @@ exports.remove_bindings = function(matcher)
     for (i = 0; i < rabbitmq_bindings_to_remove.length; i += 1)
     {
         r = rabbitmq_test_bindings[rabbitmq_bindings_to_remove[i] - 1];
-        matcher.remove(r[0], r[1]);
+        matcher.remove(r);
     }
 
     if (options.check)
@@ -61,7 +56,7 @@ exports.remove_bindings = function(matcher)
         for (i = 0; i < rabbitmq_expected_results_after_remove.length; i += 1)
         {
             test = rabbitmq_expected_results_after_remove[i];
-            expect(remove_duplicates(matcher.match(test[0]))).to.eql(test[1].sort());
+            expect(matcher.match(test[0])).to.eql(test[1]);
         }
     }
 };

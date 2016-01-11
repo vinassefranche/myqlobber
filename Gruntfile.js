@@ -92,7 +92,7 @@ module.exports = function (grunt)
     grunt.registerTask('test', 'cafemocha');
     grunt.registerTask('docs', 'apidox');
     grunt.registerTask('coverage', ['exec:cover', 'exec:check_cover']);
-    grunt.registerTask('coveralls', 'exec:coveralls');
+    // grunt.registerTask('coveralls', 'exec:coveralls');
     grunt.registerTask('bench', 'exec:bench');
     grunt.registerTask('bench-check', 'exec:bench-check');
     grunt.registerTask('default', ['jslint', 'cafemocha']);
