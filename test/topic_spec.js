@@ -192,32 +192,37 @@ describe('qlobber', function ()
         expect(matcher.match('foo.bar')).to.eql(true);
     });
 
-    it.skip('should pass example in rabbitmq topic tutorial', function ()
+    it('should pass example in documentation', function ()
     {
-	    matcher.add('*.orange.*', 'Q1');
-        matcher.add('*.*.rabbit', 'Q2');
-        matcher.add('lazy.#', 'Q2');
-        expect(['quick.orange.rabbit',
+	    matcher.add('*.orange.*');
+        matcher.add('*.*.rabbit');
+        matcher.add('foo.one.bar');
+        expect(
+            [
+                'quick.orange.rabbit',
                 'lazy.orange.elephant',
-                'quick.orange.fox',
-                'lazy.brown.fox',
                 'lazy.pink.rabbit',
-                'quick.brown.fox',
+                'lazy.brown.fox',
                 'orange',
-                'quick.orange.male.rabbit',
-                'lazy.orange.male.rabbit'].map(function (topic)
-                {
-                    return matcher.match(topic).sort();
-                })).to.eql(
-               [['Q1', 'Q2'],
-                ['Q1', 'Q2'],
-                ['Q1'],
-                ['Q2'],
-                ['Q2', 'Q2'],
-                [],
-                [],
-                [],
-                ['Q2']]);
+                'foo.one.bar',
+                'foo.two.bar',
+                'foo.*.bar'
+            ].map(function (topic)
+            {
+                return matcher.match(topic);
+            })
+        ).to.eql(
+            [
+                true,
+                true,
+                true,
+                false,
+                false,
+                true,
+                false,
+                true
+            ]
+        );
     });
 
     it('should not remove anything if not remove twice', function ()
@@ -235,7 +240,7 @@ describe('qlobber', function ()
     {
         matcher = new qlobber.Qlobber({
             separator: '/',
-            wildcard_one: '+'
+            wildcard: '+'
         });
 
         matcher.add('foo/+');
